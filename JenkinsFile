@@ -38,7 +38,7 @@ pipeline {
 
                         sonar-scanner\\bin\\sonar-scanner.bat ^
                           -Dsonar.projectKey=OmarNoman_8.2CDevSecOps ^
-                          -Dsonar.organization=OmarNoman ^
+                          -Dsonar.organization=omarnoman ^
                           -Dsonar.host.url=https://sonarcloud.io ^
                           -Dsonar.sources=. ^
                           -Dsonar.login=%SONAR_TOKEN%
@@ -48,3 +48,4 @@ pipeline {
         }
     }
 }
+
