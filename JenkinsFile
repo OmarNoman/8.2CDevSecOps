@@ -1,54 +1,50 @@
 pipeline {
- agent any
- stages {
- stage('Checkout') {
- steps {
- git branch: 'main', url: ' https://github.com/OmarNoman/8.2CDevSecOps.git'
- }
- }
- stage('Install Dependencies') {
- steps {
- bat 'npm install'
- }
- }
- stage('Run Tests') {
- steps {
- bat 'npm test || exit /b 0' // Allows pipeline to continue despite test failures
- }
- }
- stage('Generate Coverage Report') {
- steps {
- // Ensure coverage report exists
- bat 'npm run coverage || exit /b 0'
- }
- }
- stage('NPM Audit (Security Scan)') {
- steps {
- bat 'npm audit || exit /b 0' // This will show known CVEs in the output
- }
- }
- stage('SonarCloud Analysis') {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/OmarNoman/8.2CDevSecOps.git'
+            }
+        }
+        stage('Install Dependencies') {
+            steps {
+                bat 'npm install'
+            }
+        }
+        stage('Run Tests') {
+            steps {
+                bat 'npm test || exit /b 0'
+            }
+        }
+        stage('Generate Coverage Report') {
+            steps {
+                bat 'npm run coverage || exit /b 0'
+            }
+        }
+        stage('NPM Audit (Security Scan)') {
+            steps {
+                bat 'npm audit || exit /b 0'
+            }
+        }
+        stage('SonarCloud Analysis') {
             steps {
                 withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
                     bat '''
-                      # Download SonarScanner if not already present
-                      if [ ! -d "sonar-scanner" ]; then
-                        curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
-                        unzip sonar-scanner.zip
-                        mv sonar-scanner-* sonar-scanner
-                      fi
+                        if not exist sonar-scanner (
+                            curl -L -o sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-windows.zip
+                            powershell -command "Expand-Archive sonar-scanner.zip -DestinationPath ."
+                            for /d %%D in (sonar-scanner-*) do rename "%%D" sonar-scanner
+                        )
 
-                     # Run SonarScanner with project details
-                     ./sonar-scanner/bin/sonar-scanner \
-                       -Dsonar.projectKey=OmarNoman_8.2CDevSecOps \
-                       -Dsonar.organization=omarnoman \
-                       -Dsonar.host.url=https://sonarcloud.io \
-                       -Dsonar.sources=. \
-                      -Dsonar.login=$SONAR_TOKEN
+                        sonar-scanner\\bin\\sonar-scanner.bat ^
+                          -Dsonar.projectKey=OmarNoman_8.2CDevSecOps ^
+                          -Dsonar.organization=OmarNoman ^
+                          -Dsonar.host.url=https://sonarcloud.io ^
+                          -Dsonar.sources=. ^
+                          -Dsonar.login=%SONAR_TOKEN%
                     '''
                 }
             }
- }
-
+        }
+    }
 }
-
