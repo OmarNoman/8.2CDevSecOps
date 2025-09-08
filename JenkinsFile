@@ -31,15 +31,24 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
                     bat '''
-                        echo "Running SonarCloud scan..."
-                        ./sonar-scanner/bin/sonar-scanner \
-                          -Dsonar.projectKey=OmarNoman_8.2CDevSecOps \
-                          -Dsonar.organization=OmarNoman \
-                          -Dsonar.host.url=https://sonarcloud.io \
-                          -Dsonar.login=$SONAR_TOKEN
+                      # Download SonarScanner if not already present
+                      if [ ! -d "sonar-scanner" ]; then
+                        curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+                        unzip sonar-scanner.zip
+                        mv sonar-scanner-* sonar-scanner
+                      fi
+
+                     # Run SonarScanner with project details
+                     ./sonar-scanner/bin/sonar-scanner \
+                       -Dsonar.projectKey=OmarNoman_8.2CDevSecOps \
+                       -Dsonar.organization=omarnoman \
+                       -Dsonar.host.url=https://sonarcloud.io \
+                       -Dsonar.sources=. \
+                      -Dsonar.login=$SONAR_TOKEN
                     '''
                 }
             }
  }
 
 }
+
